@@ -7,13 +7,9 @@ const ContractJson = require("../artifacts/contracts/ERC721.sol/erc721.json");
 const abi = ContractJson.abi;
 
 async function main() {
-    // Notice that we're using process.env.ALCHEMY_API_KEY to load an
-    // environment variable. If you are seeing errors, make sure to go
-    // back to Step 12 and 13 to set up the dotenv dependency and .env
-    // file correctly!
+    //We are creating an instance of the Alchemy URL to the testnet here.
     const alchemy = new hre.ethers.providers.AlchemyProvider(process.env.API_URL_KEY);
-    // We're using the same wallet private key for the wallet that you
-    // created in Step 6. 
+    // We're creating an instance of the same wallet private key 
     const userWallet = new hre.ethers.Wallet(process.env.PRIVATE_KEY, alchemy);
 
     // Get the deployed contract. We need both the specific CONTRACT_ADDRESS
