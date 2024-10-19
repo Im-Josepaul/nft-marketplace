@@ -8,37 +8,25 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ERC1155Token is ERC1155, Ownable {
-
-    string[] public names; //string array of names
-    uint[] public ids; //uint array of ids
     string public baseMetadataURI; //the token metadata URI
     string public name; //the token mame
-    uint public mintFee = 0 wei; //mintfee, 0 by default. only used in mint function, not batch.
-    
-    mapping(string => uint) public nameToId; //name to id mapping
-    mapping(uint => string) public idToName; //id to name mapping
+    uint public id;
+    uint public tokenPrice = 0 wei; //tokenPrice, 0 by default. only used in mint function, not batch.
 
     /*
     constructor is executed when the factory contract calls its own deployERC1155 method. Note the Ownable(msg.sender) setting the deployer of the ERC-1155 as the owner
     */
-    constructor(string memory _contractName, string memory _uri, string[] memory _names, uint[] memory _ids) Ownable(msg.sender) ERC1155(_uri) {
-        names = _names;
-        ids = _ids;
-        createMapping();
+    constructor(string memory _uri, string memory _name, uint _id,uint256 _price) Ownable(msg.sender) ERC1155(_uri) {
+        name = _name;
+        id = _id;
         setURI(_uri);
         baseMetadataURI = _uri;
-        name = _contractName;
+        tokenPrice = _price;
     }   
 
     /*
     creates a mapping of strings to ids (i.e ["one","two"], [1,2] - "one" maps to 1, vice versa.)
     */
-    function createMapping() private {
-        for (uint id = 0; id < ids.length; id++) {
-            nameToId[names[id]] = ids[id];
-            idToName[ids[id]] = names[id];
-        }
-    }
     /*
     sets our URI and makes the ERC1155 OpenSea compatible
     */
@@ -51,8 +39,12 @@ contract ERC1155Token is ERC1155, Ownable {
         );
     }
 
-    function getNames() public view returns(string[] memory) {
-        return names;
+    function getName() public view returns(string memory) {
+        return name;
+    }
+
+    function getId() public view returns (uint) {
+        return id;
     }
 
     /*
@@ -65,9 +57,6 @@ contract ERC1155Token is ERC1155, Ownable {
     /*
     set a mint fee. only used for mint, not batch.
     */
-    function setFee(uint _fee) public onlyOwner {
-        mintFee = _fee;
-    }
 
     /*
     mint(address account, uint _id, uint256 amount)
@@ -77,11 +66,9 @@ contract ERC1155Token is ERC1155, Ownable {
     amount - amount of tokens to mint
     */
     function mint(address account, uint _id, uint256 amount) 
-        public payable returns (uint)
+        public payable
     {
-        require(msg.value == mintFee);
         _mint(account, _id, amount, "");
-        return _id;
     }
 
     /*
