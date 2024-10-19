@@ -12,7 +12,7 @@ contract ERC1155Token is ERC1155, Ownable {
     string private name; //the token mame
     uint private id;
     uint256 private tokenPrice = 0 wei; //tokenPrice, 0 by default. only used in mint function, not batch.
-
+    address private contractOwner;
     /*
     constructor is executed when the factory contract calls its own deployERC1155 method. Note the Ownable(msg.sender) setting the deployer of the ERC-1155 as the owner
     */
@@ -22,6 +22,7 @@ contract ERC1155Token is ERC1155, Ownable {
         setURI(_uri);
         baseMetadataURI = _uri;
         tokenPrice = _price;
+        contractOwner = msg.sender;
     }   
 
     /*
@@ -56,6 +57,11 @@ contract ERC1155Token is ERC1155, Ownable {
     */
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
+    }
+
+    function transferOwnership(address newOwner) public virtual override onlyOwner {
+        require(newOwner != address(0), "Invalid owner");
+        contractOwner = newOwner;
     }
 
     /*

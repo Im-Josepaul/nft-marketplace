@@ -29,6 +29,7 @@ contract Marketplace is ReentrancyGuard{
         ERC1155Token t = new ERC1155Token(_uri, _name, _id,_price);
         tokens.push(t);
         indexToContract[tokens.length - 1] = address(t);
+        t.transferOwnership(_owner);
         indexToOwner[tokens.length - 1] = _owner;
         idToIndex[_id] = tokens.length-1;
         emit ERC1155Deployed(msg.sender,address(t));
