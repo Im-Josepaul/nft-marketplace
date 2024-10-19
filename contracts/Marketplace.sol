@@ -4,8 +4,9 @@
 pragma solidity ^0.8.20;
 
 import "./ERC1155.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Marketplace {
+contract Marketplace is ReentrancyGuard{
 
     ERC1155Token[] public tokens; //an array that contains different ERC1155 tokens deployed
     mapping(uint256 => address) public indexToContract; //index to contract address mapping
@@ -14,6 +15,7 @@ contract Marketplace {
 
     event ERC1155Deployed(address owner, address tokenContract); //emitted when ERC1155 token is deployed
     event ERC1155Minted(address owner, address tokenContract, uint amount); //emmited when ERC1155 token is minted
+    event NFTPurchased(address buyer, address tokenContract, uint256 tokenId, uint256 amount, uint256 totalPrice); //emitted when purchase of NFT is successful.
 
     /*
     deployERC1155 - deploys a ERC1155 token with given parameters - returns deployed address
@@ -41,6 +43,7 @@ contract Marketplace {
     */
     function mintERC1155(uint _index, uint256 amount) public {
         uint id = getIdfromtoken(_index);
+        require(msg.sender == indexToOwner[_index], "Only the owner can mint tokens.");
         tokens[_index].mint(indexToOwner[_index], id, amount);
         emit ERC1155Minted(tokens[_index].owner(), address(tokens[_index]), amount);
     }
@@ -69,28 +72,20 @@ contract Marketplace {
         return idToIndex[_id];
     }    
 
-    function getERC1155byIndexAndId(uint _index, uint _id)
-        public
-        view
-        returns (
-            address _contract,
-            address _owner,
-            string memory _uri,
-            uint supply
-        )
-    {
-        ERC1155Token token = tokens[_index];
-        return (address(token), token.owner(), token.uri(_id), token.balanceOf(indexToOwner[_index], _id));
-    }
+    //  buyNFT(
+    //      _index - Index of the tokens array
+    //      _amount - Number of tokens to be bought
+    //      _buyerAddress - Address of the person who is going to buy the token
+    //  )
 
-    // Add this function to your Marketplace contract
-    function buyNFT(uint _index, uint _amount, address payable _buyerAddress) public payable {
-        // Ensure the caller sent enough ETH
-        require(msg.value >= _amount * 1 ether, "Insufficient funds");
-
+    function buyNFT(uint _index, uint _amount, address payable _buyerAddress) public payable nonReentrant{
+        // Ensure the caller sent enough POL
+        require(_index < tokens.length, "Token does not exist.");
         ERC1155Token token = tokens[_index];
+        uint pricePertoken = token.getTokenprice();
+        require(msg.value >= _amount * pricePertoken, "Insufficient funds was sent.");
+
         address deployerAddress = indexToOwner[_index];
-
         uint tokenId = getIdfromtoken(_index);
         
         // Transfer the token
@@ -98,6 +93,10 @@ contract Marketplace {
 
         // Send the payment to the deployer
         (bool success, ) = deployerAddress.call{value: msg.value}("");
-        require(success, "Failed to send Ether");
+        require(success, "Failed to send Polygon.");
+        emit NFTPurchased(_buyerAddress, address(token), tokenId, _amount, msg.value);
+
     }
+
+
 }

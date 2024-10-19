@@ -8,10 +8,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ERC1155Token is ERC1155, Ownable {
-    string public baseMetadataURI; //the token metadata URI
-    string public name; //the token mame
-    uint public id;
-    uint public tokenPrice = 0 wei; //tokenPrice, 0 by default. only used in mint function, not batch.
+    string private baseMetadataURI; //the token metadata URI
+    string private name; //the token mame
+    uint private id;
+    uint256 private tokenPrice = 0 wei; //tokenPrice, 0 by default. only used in mint function, not batch.
 
     /*
     constructor is executed when the factory contract calls its own deployERC1155 method. Note the Ownable(msg.sender) setting the deployer of the ERC-1155 as the owner
@@ -45,6 +45,10 @@ contract ERC1155Token is ERC1155, Ownable {
 
     function getId() public view returns (uint) {
         return id;
+    }
+
+    function getTokenprice() public view returns (uint) {
+        return tokenPrice;
     }
 
     /*
